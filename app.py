@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from dataclasses import dataclass, asdict
 from typing import List, Dict
 
