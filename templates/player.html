@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin</title>
+</head>
+<body>
+    <script>
+        // const GAME_STATES = {
+        //     "welcome": 0,
+        //     "question_pending": 1,
+        //     "answering_question": 2,
+        //     "voting_answer": 3,
+        //     "showing_answers": 4,
+        //     "showing_score": 5
+        // };
+        let MY_ROLE = "";
+        const pagePath = window.location.pathname;
+        if (pagePath.includes("admin")){
+            MY_ROLE = "admin";
+        }
+        if (pagePath.includes("ivan")){
+            MY_ROLE = "ivan";
+        }
+        if (pagePath.includes("player")){
+            MY_ROLE = "player";
+        }
+        if (pagePath.includes("projector")){
+            MY_ROLE = "projector";
+        }
+
+        const GAME_STATES = [
+            "welcome",
+            "question_pending",
+            "answering_question",
+            "voting_answer",
+            "showing_answers",
+            "showing_score"
+        ];
+
+        let CURRENT_GAME_STATE = GAME_STATES[0];
+        let MY_USERNAME = "";
+        let CURRENT_QUESTION = "";
+        let IS_ALREADY_RENDERED_VOTES = false;
+        let IS_ALREADY_RENDERED_ANSWERS = false;
+        let IS_ALREADY_RENDERED_SCOREBOARD = false;
+
+        function renderPageCurrentGameState(){
+            for (const gameState of GAME_STATES){
+                let currElement = document.getElementById(gameState);
+                if (CURRENT_GAME_STATE == gameState){
+                    currElement.style.display = "";
+                }
+                else{
+                    currElement.style.display = "none";
+                }
+            }
+        }
+
+        function renderClearLiveFeedNewPlayers(){
+            let liveFeedNewPlayersElem = document.getElementById("live_feed_new_players");
+            liveFeedNewPlayersElem.innerHTML = "";
+        }
+
+        function renderAdditionalLiveFeedNewPlayers(playerUsername){
+            let liveFeedNewPlayersElem = document.getElementById("live_feed_new_players");
+            let newPlayerElem = document.createElement("div");
+            newPlayerElem.classList.add("new_player");
+            newPlayerElem.textContent = playerUsername;
+            liveFeedNewPlayersElem.appendChild(newPlayerElem);
+        }
+
+        function renderLiveCounterNewPlayers(counter){
+            let liveCounterNewPlayersElem = document.getElementById("live_counter_new_players");
+            liveCounterNewPlayersElem.textContent = counter;
+        }
+
+        function renderCurrentQuestion(){
+            let currentQuestionElems = document.getElementsByClassName("current_question");
+            for (let currentQuestionElem of currentQuestionElems){
+                currentQuestionElem.textContent = CURRENT_QUESTION;
+            }
+        }
+        
+        function renderClearLiveFeedNewAnswers(){
+            let liveFeedNewAnswersElem = document.getElementById("live_feed_new_answers");
+            liveFeedNewAnswersElem.innerHTML = "";
+        }
+
+        function renderAdditionalLiveFeedNewAnswers(username, newAnswer){
+            let liveFeedNewAnswersElem = document.getElementById("live_feed_new_answers");
+            let newAnswerElem = document.createElement("div");
+            newAnswerElem.classList.add(`${username}`);
+            newAnswerElem.textContent = `${username}: ${newAnswer}`;
+            liveFeedNewAnswersElem.appendChild(newAnswerElem);
+        }
+
+        function renderLiveCounterNewAnswers(counter, numPlayers){
+            let liveCounterNewAnswersElem = document.getElementById("live_counter_new_answers");
+            liveCounterNewAnswersElem.textContent = `${counter} / ${numPlayers} submitted`;
+        }
+
+        function renderClearVoteForUserForm(){
+            let voteForUserFormElem = document.getElementById("vote_for_user_form");
+            voteForUserFormElem.innerHTML = "";
+        }
+
+        function renderAdditionalVoteForUserForm(username, answer){
+            let voteForUserFormElem = document.getElementById("vote_for_user_form");
+            let newVoteElem = document.createElement("button");
+            newVoteElem.textContent = answer;
+            newVoteElem.onclick = () => {
+                voteForUser(username, MY_USERNAME);
+            };
+            voteForUserFormElem.appendChild(newVoteElem);
+        }
+
+        function renderClearLiveFeedNewVoters(){
+            let liveFeedNewVotersElem = document.getElementById("live_feed_new_voters");
+            liveFeedNewVotersElem.innerHTML = "";
+        }
+
+        function renderAdditionalLiveFeedNewVoters(playerUsername, votedForUsername){
+            let liveFeedNewVotersElem = document.getElementById("live_feed_new_voters");
+            let newVoterElem = document.createElement("div");
+            newVoterElem.classList.add("new_voter");
+            newVoterElem.textContent = `${playerUsername} voted for ${votedForUsername}'s answer`;
+            liveFeedNewVotersElem.appendChild(newVoterElem);
+        }
+
+        function renderLiveCounterNewVoters(counter, numVoters){
+            let liveCounterNewVotersElem = document.getElementById("live_counter_new_voters");
+            liveCounterNewVotersElem.textContent = `${counter} / ${numVoters} voted`;
+        }
+        
+        
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function fisherYatesShuffle(array) {
+            let currentIndex = array.length;
+
+            // While there remain elements to shuffle...
+            while (currentIndex != 0) {
+
+                // Pick a remaining element...
+                let randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+
+                // And swap it with the current element.
+                [array[currentIndex], array[randomIndex]] = [
+                array[randomIndex], array[currentIndex]];
+            }
+        }
+
+        async function renderHowEveryoneVoted(playerUsername, playerAnswer, votingUsernames, correctPersonUsername){
+            let howEveryoneVotedElem = document.getElementById("how_everyone_voted");
+            let votingUsernamesString = votingUsernames.join(", ");
+            if (votingUsernames.length == 0){
+                votingUsernamesString = "No one";
+            }
+            
+            howEveryoneVotedElem.innerHTML = `
+            <div id="the_answer">${playerAnswer}</div>
+            `;
+            await delay(2000);
+            howEveryoneVotedElem.innerHTML += `
+            <div id="voted_for_it">${votingUsernamesString} thought it was ${correctPersonUsername}'s answer...</div>
+            `;
+            await delay(2000);
+            howEveryoneVotedElem.innerHTML += `
+            <div id="answerer">It was ${playerUsername}'s answer!</div>
+            `;
+            return Promise.resolve();
+        }
+
+        function renderHowEveryoneScoredThisRound(playersAndTheirScores){
+            let howEveryoneScoredElem = document.getElementById("how_everyone_scored");
+            let finalHTML = `<div id="this_round_scores">On this Question:</div>`;
+            for (playerAndHisScore of playersAndTheirScores){
+                let playerUsername = playerAndHisScore[0];
+                let playerScore = playerAndHisScore[1];
+                let playerAnswer = playerAndHisScore[2];
+                finalHTML += `<div class="leaderboard_entry">`;
+                finalHTML += `<div class="leaderboard_username">${playerUsername}</div>`;
+                finalHTML += `<div class="leaderboard_answer">${playerAnswer}</div>`;
+                finalHTML += `<div class="leaderboard_score">${playerScore}</div>`;
+                finalHTML += `</div>`;
+            }
+            howEveryoneScoredElem.innerHTML = finalHTML;
+        }
+
+        function renderHowEveryoneScoredOverall(playersAndTheirScores){
+            let howEveryoneScoredElem = document.getElementById("how_everyone_scored");
+            let finalHTML = `<div id="overall_scores">Overall leaderboard:</div>`;
+            for (playerAndHisScore of playersAndTheirScores){
+                let playerUsername = playerAndHisScore[0];
+                let playerScore = playerAndHisScore[1];
+                finalHTML += `<div class="leaderboard_entry">`;
+                finalHTML += `<div class="leaderboard_username">${playerUsername}</div>`;
+                finalHTML += `<div class="leaderboard_score">${playerScore}</div>`;
+                finalHTML += `</div>`;
+            }
+            howEveryoneScoredElem.innerHTML = finalHTML;
+        }
+
+        async function getGameDataAndRenderEverything(){
+            const response = await fetch("/get_game_data");
+            const gameData = await response.json();
+            CURRENT_GAME_STATE = gameData["current_state"];
+            renderPageCurrentGameState();
+            CURRENT_QUESTION = gameData["questions"][gameData["current_question_idx"]];
+            renderCurrentQuestion();
+            
+            switch(CURRENT_GAME_STATE){
+                case "welcome":
+                    renderClearLiveFeedNewPlayers();
+                    let numJoinedPlayers = Object.keys(gameData["players"]).length;
+                    for (const playerUsername in gameData["players"]){
+                        renderAdditionalLiveFeedNewPlayers(playerUsername);
+                    }
+                    renderLiveCounterNewPlayers(numJoinedPlayers);
+                    break;
+                case "question_pending":
+                    IS_ALREADY_RENDERED_ANSWERS = false;
+                    IS_ALREADY_RENDERED_SCOREBOARD = false;
+                    IS_ALREADY_RENDERED_VOTES = false;
+                    break;
+                case "answering_question":
+                    renderClearLiveFeedNewAnswers();
+                    let totalNumPlayers = Object.keys(gameData["players"]).length;
+                    let numPlayersWhoSubmittedAnswers = 0
+                    for (const playerUsername in gameData["players"])
+                    {
+                        const player = gameData["players"][playerUsername];
+                        const playerAnswer = player["question_answer_pairs"][CURRENT_QUESTION];
+                        if (playerAnswer != null){
+                            numPlayersWhoSubmittedAnswers++;
+                            renderAdditionalLiveFeedNewAnswers(playerUsername, playerAnswer);
+                        }
+                    }
+                    renderLiveCounterNewAnswers(numPlayersWhoSubmittedAnswers, totalNumPlayers);
+                    break;
+                case "voting_answer":
+                    if (!IS_ALREADY_RENDERED_VOTES){
+                        renderClearVoteForUserForm();
+                        let shuffledPlayerUsernames = Object.keys(gameData["players"]);
+                        fisherYatesShuffle(shuffledPlayerUsernames);
+                        for (const playerUsername of shuffledPlayerUsernames)
+                        {
+                            if (playerUsername == MY_USERNAME)
+                            {
+                                continue;
+                            }
+                            const player = gameData["players"][playerUsername];
+                            const playerAnswer = player["question_answer_pairs"][CURRENT_QUESTION];
+                            if (playerAnswer != null){
+                                renderAdditionalVoteForUserForm(playerUsername, playerAnswer);
+                            }
+                        }
+                        IS_ALREADY_RENDERED_VOTES = true;
+                    }
+                    renderClearLiveFeedNewVoters();
+                    let numPlayersWhoHaveVoted = 0;
+                    const totalNumVoters = Object.keys(gameData["players"]).length - 1;
+                    for (const playerUsername in gameData["players"])
+                    {
+                        const player = gameData["players"][playerUsername];
+                        const personPlayerVotedFor = player["question_person_i_voted_for_pairs"][CURRENT_QUESTION];
+                        if (personPlayerVotedFor != null){
+                            numPlayersWhoHaveVoted += 1;
+                            renderAdditionalLiveFeedNewVoters(playerUsername, personPlayerVotedFor);
+                        }
+                    }
+                    renderLiveCounterNewVoters(numPlayersWhoHaveVoted, totalNumVoters);
+                    break;
+                case "showing_answers":
+                    if (!IS_ALREADY_RENDERED_ANSWERS){
+                        IS_ALREADY_RENDERED_ANSWERS = true;
+                        const correctPersonUsername = gameData["correct_person_username"];
+                        let shuffledPlayerUsernames = Object.keys(gameData["players"]);
+                        fisherYatesShuffle(shuffledPlayerUsernames);
+                        for (const playerUsername of shuffledPlayerUsernames){
+                            if (playerUsername == correctPersonUsername)
+                            {
+                                continue;
+                            }
+                            const player = gameData["players"][playerUsername];
+                            const playerAnswer = player["question_answer_pairs"][CURRENT_QUESTION];
+                            const votingUsernames = player["question_people_that_voted_for_my_answer_pairs"][CURRENT_QUESTION];
+                            await renderHowEveryoneVoted(playerUsername, playerAnswer, votingUsernames, correctPersonUsername);
+                            await delay(2000);
+                        }
+
+                        const player = gameData["players"][correctPersonUsername];
+                        const playerAnswer = player["question_answer_pairs"][CURRENT_QUESTION];
+                        const votingUsernames = player["question_people_that_voted_for_my_answer_pairs"][CURRENT_QUESTION];
+                        await renderHowEveryoneVoted(correctPersonUsername, playerAnswer, votingUsernames, correctPersonUsername);
+                        await delay(2000);
+                    }
+                    break;
+                case "showing_score":
+                    if (!IS_ALREADY_RENDERED_SCOREBOARD){
+                        IS_ALREADY_RENDERED_SCOREBOARD = true;
+                        const response = await fetch("/compute_scores_for_the_round");
+                        const gameData = await response.json();
+                        let playersAndTheirScoresForThisQuestion = [];
+                        for (const playerUsername in gameData["players"]){
+                            if (playerUsername == gameData["correct_person_username"]){
+                                continue;
+                            }
+                            const player = gameData["players"][playerUsername];
+                            const playerScoreForThisQuestion = Number(player["question_score_earned_pairs"][CURRENT_QUESTION]);
+                            const playerAnswerToThisQuestion = player["question_answer_pairs"][CURRENT_QUESTION];
+                            playersAndTheirScoresForThisQuestion.push([playerUsername, playerScoreForThisQuestion, playerAnswerToThisQuestion]);
+                        }
+                        playersAndTheirScoresForThisQuestion.sort((a, b) => a[1] - b[1]);
+                        renderHowEveryoneScoredThisRound(playersAndTheirScoresForThisQuestion);
+                        await delay(4000);
+
+                        let playersAndTheirScoresOverall = [];
+                        for (const playerUsername in gameData["players"]){
+                            if (playerUsername == gameData["correct_person_username"]){
+                                continue;
+                            }
+                            const player = gameData["players"][playerUsername];
+                            const playerScore = Number(player["score"]);
+                            playersAndTheirScoresOverall.push([playerUsername, playerScore]);
+                        }
+                        playersAndTheirScoresOverall.sort((a, b) => a[1] - b[1]);
+                        renderHowEveryoneScoredOverall(playersAndTheirScoresOverall);
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+        }
+
+        async function advanceGameState(){
+            const response = await fetch("/advance_game_state");
+        }
+
+        async function startOver(){
+            const response = await fetch("/start_over");
+        }
+
+        async function addNewPlayer(){
+            const newPlayerUsernameInputElem = document.getElementById("intext_new_player_username");
+            const newPlayerUsername = newPlayerUsernameInputElem.value.replace(/\s+/g, "");
+            
+            let fetch_path = "";
+            if (MY_ROLE == "ivan"){
+                fetch_path = "/add_ivan";
+            }
+            else{
+                fetch_path = "/add_new_player";
+            }
+
+            const response = await fetch(fetch_path, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    "new_player_username": newPlayerUsername,
+                }),
+            });
+            MY_USERNAME = newPlayerUsername;
+        }
+
+        async function addNewQuestion(){
+            const newQuestionInputElem = document.getElementById("intext_new_question");
+            const newQuestion = newQuestionInputElem.value;
+            const response = await fetch("/add_new_question", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    "new_question": newQuestion,
+                }),
+            });
+        }
+
+        async function addNewAnswerToCurrentQuestion(){
+            const newAnswerInputElem = document.getElementById("intext_new_answer");
+            const newAnswer = newAnswerInputElem.value;
+            const response = await fetch("/add_new_answer_to_current_question", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    "new_answer": newAnswer,
+                    "player_username": MY_USERNAME,
+                }),
+            });
+        }
+
+        async function voteForUser(votedForUsername, playerUsername){
+            const response = await fetch("/vote_for_user", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    "voted_for_username": votedForUsername,
+                    "player_username": MY_USERNAME,
+                }),
+            });
+        }
+
+        setInterval(getGameDataAndRenderEverything, 500);
+    </script>
+
+    <div id="debug"></div>
+
+    <div id="welcome">
+        Welcome!
+        <div id="new_player_form" class="player_visible">
+            <input type="text" id="intext_new_player_username" placeholder="Enter your first name">
+            <button id="button_add_new_player" onclick="addNewPlayer()">Lock it in!</button>
+        </div>
+        <div id="live_counter_new_players" class="projector_visible admin_visible"></div>
+        <div id="live_feed_new_players" class="projector_visible admin_visible"></div>
+    </div>
+    <div id="question_pending">
+        Question Pending
+        <div id="add_new_question_form" class="admin_visible">
+            <input type="text" id="intext_new_question" placeholder="Enter new question">
+            <button id="button_add_new_question" onclick="addNewQuestion()">Lock it in!</button>
+        </div>
+    </div>
+    <div id="answering_question">
+        Answering Question
+        <div class="current_question admin_visible player_visible ivan_visible projector_visible"></div>
+        <div id="add_new_answer_to_current_question_form" class="player_visible ivan_visible">
+            <input type="text" id="intext_new_answer" placeholder="Enter answer">
+            <button id="button_add_new_answer_to_current_question" onclick="addNewAnswerToCurrentQuestion()">Lock it in!</button>
+        </div>
+
+        <div id="live_counter_new_answers" class="projector_visible"></div>
+        <div id="live_feed_new_answers" class="admin_visible"></div>
+    </div>
+    <div id="voting_answer">
+        Voting Answer
+        <div class="current_question admin_visible player_visible ivan_visible projector_visible"></div>
+        <div id="vote_for_user_form" class="player_visible"></div>
+
+        <div id="live_counter_new_voters" class="projector_visible"></div>
+        <div id="live_feed_new_voters" class="admin_visible"></div>
+    </div>
+    <div id="showing_answers">
+        Showing Answers
+        <div class="current_question admin_visible player_visible ivan_visible projector_visible"></div>
+        <div id="how_everyone_voted" class="projector_visible"></div>
+    </div>
+    <div id="showing_score">
+        Showing Score
+        <div class="current_question admin_visible player_visible ivan_visible projector_visible"></div>
+        <div id="how_everyone_scored" class="projector_visible"></div>
+    </div>
+
+    <button id="button_advance_game_state" class="admin_visible" onclick="advanceGameState()">Go to next phase</button>
+    <button id="button_start_over" class="admin_visible" onclick="startOver()">Start over</button>
+
+</body>
+</html>
