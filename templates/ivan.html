@@ -2,32 +2,45 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/master.css', v='1.2')}}">
 </head>
 <body>
     <script>
-        // const GAME_STATES = {
-        //     "welcome": 0,
-        //     "question_pending": 1,
-        //     "answering_question": 2,
-        //     "voting_answer": 3,
-        //     "showing_answers": 4,
-        //     "showing_score": 5
-        // };
         let MY_ROLE = "";
         const pagePath = window.location.pathname;
-        if (pagePath.includes("admin")){
-            MY_ROLE = "admin";
-        }
-        if (pagePath.includes("ivan")){
-            MY_ROLE = "ivan";
-        }
-        if (pagePath.includes("player")){
-            MY_ROLE = "player";
-        }
-        if (pagePath.includes("projector")){
-            MY_ROLE = "projector";
-        }
+        window.addEventListener('load', ()=>{
+            if (pagePath.includes("admin")){
+                MY_ROLE = "admin";
+                let adminVisibleElems = document.getElementsByClassName("admin_visible");
+                for (elem of adminVisibleElems){
+                    elem.classList.remove("hide_me")
+                }
+            }
+            if (pagePath.includes("ivan")){
+                MY_ROLE = "ivan";
+                let ivanVisibleElems = document.getElementsByClassName("ivan_visible");
+                for (elem of ivanVisibleElems){
+                    elem.classList.remove("hide_me")
+                }
+            }
+            if (pagePath.includes("player")){
+                MY_ROLE = "player";
+                let playerVisibleElems = document.getElementsByClassName("player_visible");
+                for (elem of playerVisibleElems){
+                    elem.classList.remove("hide_me")
+                }
+            }
+            if (pagePath.includes("projector")){
+                MY_ROLE = "projector";
+                let projectorVisibleElems = document.getElementsByClassName("projector_visible");
+                for (elem of projectorVisibleElems){
+                    elem.classList.remove("hide_me")
+                }
+            }        
+        });
+        
 
         const GAME_STATES = [
             "welcome",
@@ -44,12 +57,13 @@
         let IS_ALREADY_RENDERED_VOTES = false;
         let IS_ALREADY_RENDERED_ANSWERS = false;
         let IS_ALREADY_RENDERED_SCOREBOARD = false;
+        let IS_ALREADY_REENABLED_ALL_BUTTONS = true;
 
         function renderPageCurrentGameState(){
             for (const gameState of GAME_STATES){
                 let currElement = document.getElementById(gameState);
                 if (CURRENT_GAME_STATE == gameState){
-                    currElement.style.display = "";
+                    currElement.style.display = "flex";
                 }
                 else{
                     currElement.style.display = "none";
@@ -72,7 +86,7 @@
 
         function renderLiveCounterNewPlayers(counter){
             let liveCounterNewPlayersElem = document.getElementById("live_counter_new_players");
-            liveCounterNewPlayersElem.textContent = counter;
+            liveCounterNewPlayersElem.textContent = `${counter} peeps`;
         }
 
         function renderCurrentQuestion(){
@@ -91,13 +105,14 @@
             let liveFeedNewAnswersElem = document.getElementById("live_feed_new_answers");
             let newAnswerElem = document.createElement("div");
             newAnswerElem.classList.add(`${username}`);
+            newAnswerElem.classList.add(`new_player`);
             newAnswerElem.textContent = `${username}: ${newAnswer}`;
             liveFeedNewAnswersElem.appendChild(newAnswerElem);
         }
 
         function renderLiveCounterNewAnswers(counter, numPlayers){
             let liveCounterNewAnswersElem = document.getElementById("live_counter_new_answers");
-            liveCounterNewAnswersElem.textContent = `${counter} / ${numPlayers} submitted`;
+            liveCounterNewAnswersElem.textContent = `${counter} / ${numPlayers} are Locked In™ `;
         }
 
         function renderClearVoteForUserForm(){
@@ -109,8 +124,13 @@
             let voteForUserFormElem = document.getElementById("vote_for_user_form");
             let newVoteElem = document.createElement("button");
             newVoteElem.textContent = answer;
+            newVoteElem.classList.add("vote_button")
             newVoteElem.onclick = () => {
                 voteForUser(username, MY_USERNAME);
+                let voteButtons = document.getElementsByClassName("vote_button");
+                for (let voteButton of voteButtons){
+                    voteButton.disabled = true;
+                }
             };
             voteForUserFormElem.appendChild(newVoteElem);
         }
@@ -130,7 +150,7 @@
 
         function renderLiveCounterNewVoters(counter, numVoters){
             let liveCounterNewVotersElem = document.getElementById("live_counter_new_voters");
-            liveCounterNewVotersElem.textContent = `${counter} / ${numVoters} voted`;
+            liveCounterNewVotersElem.textContent = `${counter} / ${numVoters} are Locked In™`;
         }
         
         
@@ -164,13 +184,13 @@
             howEveryoneVotedElem.innerHTML = `
             <div id="the_answer">${playerAnswer}</div>
             `;
-            await delay(2000);
+            await delay(4000);
             howEveryoneVotedElem.innerHTML += `
-            <div id="voted_for_it">${votingUsernamesString} thought it was ${correctPersonUsername}'s answer...</div>
+            <div id="voted_for_it"><b>${votingUsernamesString}</b> thought it was ${correctPersonUsername}'s answer...</div>
             `;
-            await delay(2000);
+            await delay(3000);
             howEveryoneVotedElem.innerHTML += `
-            <div id="answerer">It was ${playerUsername}'s answer!</div>
+            <div id="answerer">It was <b>${playerUsername}</b>'s answer!</div>
             `;
             return Promise.resolve();
         }
@@ -183,9 +203,11 @@
                 let playerScore = playerAndHisScore[1];
                 let playerAnswer = playerAndHisScore[2];
                 finalHTML += `<div class="leaderboard_entry">`;
+                finalHTML += `<div class="leaderboard_username_score_group">`;
                 finalHTML += `<div class="leaderboard_username">${playerUsername}</div>`;
-                finalHTML += `<div class="leaderboard_answer">${playerAnswer}</div>`;
                 finalHTML += `<div class="leaderboard_score">${playerScore}</div>`;
+                finalHTML += `</div>`;
+                finalHTML += `<div class="leaderboard_answer">${playerAnswer}</div>`;
                 finalHTML += `</div>`;
             }
             howEveryoneScoredElem.innerHTML = finalHTML;
@@ -198,8 +220,10 @@
                 let playerUsername = playerAndHisScore[0];
                 let playerScore = playerAndHisScore[1];
                 finalHTML += `<div class="leaderboard_entry">`;
+                finalHTML += `<div class="leaderboard_username_score_group">`;
                 finalHTML += `<div class="leaderboard_username">${playerUsername}</div>`;
                 finalHTML += `<div class="leaderboard_score">${playerScore}</div>`;
+                finalHTML += `</div>`;
                 finalHTML += `</div>`;
             }
             howEveryoneScoredElem.innerHTML = finalHTML;
@@ -215,6 +239,15 @@
             
             switch(CURRENT_GAME_STATE){
                 case "welcome":
+                    if (!IS_ALREADY_REENABLED_ALL_BUTTONS){
+                        const buttons = document.querySelectorAll('button');
+                        // Enable all buttons
+                        buttons.forEach(button => {
+                            button.disabled = false;
+                        });
+                        IS_ALREADY_REENABLED_ALL_BUTTONS = true;
+                    }
+                    
                     renderClearLiveFeedNewPlayers();
                     let numJoinedPlayers = Object.keys(gameData["players"]).length;
                     for (const playerUsername in gameData["players"]){
@@ -223,11 +256,20 @@
                     renderLiveCounterNewPlayers(numJoinedPlayers);
                     break;
                 case "question_pending":
+                    if (!IS_ALREADY_REENABLED_ALL_BUTTONS){
+                        const buttons = document.querySelectorAll('button');
+                        // Enable all buttons
+                        buttons.forEach(button => {
+                            button.disabled = false;
+                        });
+                        IS_ALREADY_REENABLED_ALL_BUTTONS = true;
+                    }
                     IS_ALREADY_RENDERED_ANSWERS = false;
                     IS_ALREADY_RENDERED_SCOREBOARD = false;
                     IS_ALREADY_RENDERED_VOTES = false;
                     break;
                 case "answering_question":
+                    IS_ALREADY_REENABLED_ALL_BUTTONS = false;
                     renderClearLiveFeedNewAnswers();
                     let totalNumPlayers = Object.keys(gameData["players"]).length;
                     let numPlayersWhoSubmittedAnswers = 0
@@ -290,14 +332,13 @@
                             const playerAnswer = player["question_answer_pairs"][CURRENT_QUESTION];
                             const votingUsernames = player["question_people_that_voted_for_my_answer_pairs"][CURRENT_QUESTION];
                             await renderHowEveryoneVoted(playerUsername, playerAnswer, votingUsernames, correctPersonUsername);
-                            await delay(2000);
+                            await delay(3000);
                         }
 
                         const player = gameData["players"][correctPersonUsername];
                         const playerAnswer = player["question_answer_pairs"][CURRENT_QUESTION];
                         const votingUsernames = player["question_people_that_voted_for_my_answer_pairs"][CURRENT_QUESTION];
                         await renderHowEveryoneVoted(correctPersonUsername, playerAnswer, votingUsernames, correctPersonUsername);
-                        await delay(2000);
                     }
                     break;
                 case "showing_score":
@@ -315,9 +356,9 @@
                             const playerAnswerToThisQuestion = player["question_answer_pairs"][CURRENT_QUESTION];
                             playersAndTheirScoresForThisQuestion.push([playerUsername, playerScoreForThisQuestion, playerAnswerToThisQuestion]);
                         }
-                        playersAndTheirScoresForThisQuestion.sort((a, b) => a[1] - b[1]);
+                        playersAndTheirScoresForThisQuestion.sort((a, b) => b[1] - a[1]);
                         renderHowEveryoneScoredThisRound(playersAndTheirScoresForThisQuestion);
-                        await delay(4000);
+                        await delay(6000);
 
                         let playersAndTheirScoresOverall = [];
                         for (const playerUsername in gameData["players"]){
@@ -328,7 +369,7 @@
                             const playerScore = Number(player["score"]);
                             playersAndTheirScoresOverall.push([playerUsername, playerScore]);
                         }
-                        playersAndTheirScoresOverall.sort((a, b) => a[1] - b[1]);
+                        playersAndTheirScoresOverall.sort((a, b) => b[1] - a[1]);
                         renderHowEveryoneScoredOverall(playersAndTheirScoresOverall);
                     }
                     break;
@@ -345,6 +386,7 @@
         async function startOver(){
             const response = await fetch("/start_over");
         }
+
 
         async function addNewPlayer(){
             const newPlayerUsernameInputElem = document.getElementById("intext_new_player_username");
@@ -412,59 +454,226 @@
             });
         }
 
+        function positionOverlap(button_id, img_id) {
+            const target = document.getElementById(button_id);
+            const overlap = document.getElementById(img_id);
+
+            const targetRect = target.getBoundingClientRect();
+            const offset = Math.floor(targetRect.width * 0.2);
+            overlap.style.left = `${targetRect.left - overlap.offsetWidth + offset}px`;
+            // overlap.style.top = `${targetRect.top}px`;
+        }
+
+        window.addEventListener('resize', ()=>{
+            positionOverlap("button_add_new_player", "ivan_penguins");
+            positionOverlap("button_add_new_answer_to_current_question", "ivan_suit");
+        });
+        window.addEventListener('load', ()=>{
+            positionOverlap("button_add_new_player", "ivan_penguins");
+            positionOverlap("button_add_new_answer_to_current_question", "ivan_suit");
+        });
+        
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get all button elements on the page
+            const buttons = document.querySelectorAll('button');
+
+            // Add a click event listener to each button
+            buttons.forEach(button => {
+                button.addEventListener('click', function() {
+                    if (this.id == "button_advance_game_state" || this.id == "button_start_over"){
+                        // Don't disable this
+                    }else{
+                        this.disabled = true; // Disable the button
+                    }
+                    
+                });
+            });
+        });
+
         setInterval(getGameDataAndRenderEverything, 500);
     </script>
-
+    
     <div id="debug"></div>
 
-    <div id="welcome">
-        Welcome!
-        <div id="new_player_form" class="player_visible">
-            <input type="text" id="intext_new_player_username" placeholder="Enter your first name">
-            <button id="button_add_new_player" onclick="addNewPlayer()">Lock it in!</button>
+    <div id="welcome" class="phase_wrapper">
+        <div class="phase_banner">Welcome to Lyin' Ivan!</div>
+        <img src="{{ url_for('static', filename='images/IvanPenguins.png') }}" id="ivan_penguins" class="bottom_left_image" alt="Bottom Left Image">
+       
+        <div id="new_player_form" class="player_visible ivan_visible buttoned_form hide_me">
+            <label class="form_label">Your name</label>
+            <input type="text" id="intext_new_player_username" placeholder="" autofocus>
+            <button id="button_add_new_player" onclick="addNewPlayer()">Lock In™ </button>
         </div>
-        <div id="live_counter_new_players" class="projector_visible admin_visible"></div>
-        <div id="live_feed_new_players" class="projector_visible admin_visible"></div>
+
+        <div id="live_counter_new_players" class="projector_visible admin_visible hide_me live_counter">
+            6 peeps
+        </div>
+        
+        <div class="live_wrapper">
+            
+            <div id="live_feed_new_players" class="projector_visible admin_visible hide_me live_feed">
+                <div class="new_player">KingIvan</div>
+                <div class="new_player">Charles</div>
+                <div class="new_player">Caleb</div>
+                <div class="new_player">Tim</div>
+                <div class="new_player">Charles</div>
+                <div class="new_player">Caleb</div>
+                <div class="new_player">KingIvan</div>
+                <div class="new_player">Charles</div>
+                <div class="new_player">Caleb</div>
+            </div>
+        </div>
     </div>
-    <div id="question_pending">
-        Question Pending
-        <div id="add_new_question_form" class="admin_visible">
+    <div id="question_pending" class="phase_wrapper">
+        <div class="phase_banner">Question being Locked In™...</div>
+        <img src="{{ url_for('static', filename='images/IvanIceCream.png') }}" id="ivan_icecream" class="right_image" alt="Bottom Left Image">
+        <div id="add_new_question_form" class="admin_visible hide_me buttoned_form">
             <input type="text" id="intext_new_question" placeholder="Enter new question">
-            <button id="button_add_new_question" onclick="addNewQuestion()">Lock it in!</button>
+            <button id="button_add_new_question" onclick="addNewQuestion()">Lock In™ </button>
         </div>
     </div>
-    <div id="answering_question">
-        Answering Question
-        <div class="current_question admin_visible player_visible ivan_visible projector_visible"></div>
-        <div id="add_new_answer_to_current_question_form" class="player_visible ivan_visible">
+    <div id="answering_question" class="phase_wrapper">
+        <!-- <div class="phase_banner">Answering Question</div> -->
+        <div class="current_question admin_visible player_visible ivan_visible projector_visible hide_me phase_banner">
+            What is Ivan's favorite candy when topped with chocolates?
+        </div>
+        <img src="{{ url_for('static', filename='images/IvanSuit.png') }}" id="ivan_suit" class="bottom_left_image" alt="Bottom Left Image">
+        <div id="add_new_answer_to_current_question_form" class="player_visible ivan_visible hide_me buttoned_form">
             <input type="text" id="intext_new_answer" placeholder="Enter answer">
-            <button id="button_add_new_answer_to_current_question" onclick="addNewAnswerToCurrentQuestion()">Lock it in!</button>
+            <button id="button_add_new_answer_to_current_question" onclick="addNewAnswerToCurrentQuestion()">Lock In™ </button>
+        </div>
+        <div id="live_counter_new_answers" class="projector_visible admin_visible hide_me live_counter">
+            3/4 are Locked In™ 
         </div>
 
-        <div id="live_counter_new_answers" class="projector_visible"></div>
-        <div id="live_feed_new_answers" class="admin_visible"></div>
+        <div class="live_wrapper">
+            <div id="live_feed_new_answers" class="admin_visible hide_me live_feed">
+                <div class="new_player">KingIvan: </I></div>
+                <div class="new_player">Charles</div>
+                <div class="new_player">Caleb</div>
+                <div class="new_player">Tim</div>
+                <div class="new_player">Charles</div>
+                <div class="new_player">Caleb</div>
+                <div class="new_player">KingIvan</div>
+                <div class="new_player">Charles</div>
+                <div class="new_player">Caleb</div>
+            </div>
+        </div>
     </div>
-    <div id="voting_answer">
-        Voting Answer
-        <div class="current_question admin_visible player_visible ivan_visible projector_visible"></div>
-        <div id="vote_for_user_form" class="player_visible"></div>
+    <div id="voting_answer" class="phase_wrapper">
+        <div class="current_question admin_visible player_visible ivan_visible projector_visible hide_me phase_banner">
+            What is Ivan's favorite candy when topped with chocolates?
+        </div>
+        <div id="live_counter_new_voters" class="projector_visible admin_visible ivan_visible hide_me">
+            3/4 are Locked In™ 
+        </div>
+        
+        <img src="{{ url_for('static', filename='images/IvanPeek.png') }}" id="ivan_peek" class="upper_right_image" alt="Bottom Left Image">
+        <div id="vote_for_user_form" class="player_visible projector_visible hide_me">
+            <button>Almost Heaven</button>
+            <button>West Virginia Blue RidgeD Mountains Shannadoah River</button>
+            <button>Just Beat it with a Candy Cane of Epic Proportions</button>
+            <button>Rocket League</button>
+            <button>Lol Hehe What Chumminy</button>
+        </div>
+        <div class="live_wrapper">
+            <div id="live_feed_new_voters" class="admin_visible hide_me live_feed">
+                <div class="new_voter">${playerUsername} voted for ${votedForUsername}'s answer</div>
+                <div class="new_voter">${playerUsername} voted for ${votedForUsername}'s answer</div>
+                <div class="new_voter">${playerUsername} voted for ${votedForUsername}'s answer</div>
+                <div class="new_voter">${playerUsername} voted for ${votedForUsername}'s answer</div>
+                <div class="new_voter">${playerUsername} voted for ${votedForUsername}'s answer</div>
+            </div>    
+        </div>
+        
+        
+    </div>
+    <div id="showing_answers"  class="phase_wrapper">
+        <div class="current_question admin_visible player_visible ivan_visible projector_visible hide_me phase_banner">
+            What is Ivan's favorite candy when topped with chocolates?
+        </div>
+        <div class="hide_me player_visible ivan_visible status_message">Showing results on the big screen!</div>
+        <img src="{{ url_for('static', filename='images/IvanLol.png') }}" id="ivan_lol" class="bottom_left_image">
+        <div id="how_everyone_voted" class="projector_visible admin_visible hide_me">
+            <div id="the_answer">West Virginia Blue RidgeD Mountains Shannadoah River</div>
+            <div id="voted_for_it"><b>Caleb, Charles, KingIvan</b> thought it was KingIvan's answer...</div>
+            <div id="answerer">It was KingIvan's answer!</div>
+        </div>
+    </div>
+    <div id="showing_score" class="phase_wrapper">
+        <div class="current_question admin_visible player_visible ivan_visible projector_visible hide_me phase_banner">
+            What is Ivan's favorite candy when topped with chocolates?
+        </div>
+        <div class="hide_me player_visible ivan_visible status_message">Showing results on the big screen!</div>
+        <img src="{{ url_for('static', filename='images/IvanSquint.png') }}" id="ivan_squint" class="right_image">
+        <div id="how_everyone_scored" class="projector_visible admin_visible hide_me">
+            <div id="this_round_scores">
+                On this Question:
+            </div>
+            
+            <div class="leaderboard_entry">
+                <div class="leaderboard_username_score_group">
+                    <div class="leaderboard_username">KingIvan</div>
+                    <div class="leaderboard_score">90</div>
+                </div>
+                <div class="leaderboard_answer">West Virginia Blue RidgeD Mountains Shannadoah River</div>
+            </div>
+            <div class="leaderboard_entry">
+                <div class="leaderboard_username_score_group">
+                    <div class="leaderboard_username">KingIvan</div>
+                    <div class="leaderboard_score">90</div>
+                </div>
+                <div class="leaderboard_answer">West Virginia Blue RidgeD Mountains Shannadoah River</div>
+            </div>
+            <div class="leaderboard_entry">
+                <div class="leaderboard_username_score_group">
+                    <div class="leaderboard_username">KingIvan</div>
+                    <div class="leaderboard_score">90</div>
+                </div>
+                <div class="leaderboard_answer">West Virginia Blue RidgeD Mountains Shannadoah River</div>
+            </div>
+            <div class="leaderboard_entry">
+                <div class="leaderboard_username_score_group">
+                    <div class="leaderboard_username">KingIvan</div>
+                    <div class="leaderboard_score">90</div>
+                </div>
+                <div class="leaderboard_answer">West Virginia Blue RidgeD Mountains Shannadoah River</div>
+            </div>
+            <div class="leaderboard_entry">
+                <div class="leaderboard_username_score_group">
+                    <div class="leaderboard_username">KingIvan</div>
+                    <div class="leaderboard_score">90</div>
+                </div>
+                <div class="leaderboard_answer">West Virginia Blue RidgeD Mountains Shannadoah River</div>
+            </div>
+            <div class="leaderboard_entry">
+                <div class="leaderboard_username_score_group">
+                    <div class="leaderboard_username">KingIvan</div>
+                    <div class="leaderboard_score">90</div>
+                </div>
+                <div class="leaderboard_answer">West Virginia Blue RidgeD Mountains Shannadoah River</div>
+            </div>
+            <div class="leaderboard_entry">
+                <div class="leaderboard_username_score_group">
+                    <div class="leaderboard_username">KingIvan</div>
+                    <div class="leaderboard_score">90</div>
+                </div>
+                <div class="leaderboard_answer">West Virginia Blue RidgeD Mountains Shannadoah River</div>
+            </div>
+            <div class="leaderboard_entry">
+                <div class="leaderboard_username_score_group">
+                    <div class="leaderboard_username">KingIvan</div>
+                    <div class="leaderboard_score">90</div>
+                </div>
+                <div class="leaderboard_answer">West Virginia Blue RidgeD Mountains Shannadoah River</div>
+            </div>
+        </div>
+    </div>
 
-        <div id="live_counter_new_voters" class="projector_visible"></div>
-        <div id="live_feed_new_voters" class="admin_visible"></div>
+    <div id="game_control_button_wrapper">
+        <button id="button_advance_game_state" class="admin_visible hide_me" onclick="advanceGameState()">Go to next phase</button>
+        <button id="button_start_over" class="admin_visible hide_me" onclick="startOver()">Start over</button>
     </div>
-    <div id="showing_answers">
-        Showing Answers
-        <div class="current_question admin_visible player_visible ivan_visible projector_visible"></div>
-        <div id="how_everyone_voted" class="projector_visible"></div>
-    </div>
-    <div id="showing_score">
-        Showing Score
-        <div class="current_question admin_visible player_visible ivan_visible projector_visible"></div>
-        <div id="how_everyone_scored" class="projector_visible"></div>
-    </div>
-
-    <button id="button_advance_game_state" class="admin_visible" onclick="advanceGameState()">Go to next phase</button>
-    <button id="button_start_over" class="admin_visible" onclick="startOver()">Start over</button>
-
 </body>
 </html>

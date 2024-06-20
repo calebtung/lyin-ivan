@@ -1,0 +1,242 @@
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+
+body {
+    font-size: 2rem;
+    font-family: "Libre Baskerville", serif;
+    font-weight: 400;
+    font-style: normal;
+    max-width: 100%;
+    overflow: hidden;
+    /* background-color:rgb(255, 245, 236); */
+}
+
+.hide_me {
+    visibility: hidden;
+}
+
+.phase_wrapper {
+    display: none;
+    flex-direction: column;  /* Stacks things vertically */
+    justify-content: center; /* Center horizontally */
+    align-items: center;     /* Center vertically */
+    height: 100vh;
+    width: 100%;
+    text-shadow: 2px 2px 4px white;
+}
+
+.phase_banner {
+    z-index: 10;
+    font-size: 2em;
+    margin-bottom: 1em;
+    font-weight: bold;
+    text-align: center;
+}
+
+.status_message {
+    text-align: center;
+}
+
+.buttoned_form {
+    display: flex;
+    z-index: 1;
+    flex-direction: column;  /* Stacks things vertically */
+    justify-content: center; /* Center horizontally */
+}
+
+button {
+    font-size: 0.6em;
+    font-family: "Libre Baskerville", serif;
+    font-weight: 200;
+    font-style: normal;
+    padding: 0.6em 1.2em;
+    margin-top: 1rem;
+    /* font-weight: bold; */
+    max-width: 20rem;
+}
+
+input {
+    font-size: 0.6em;
+    font-family: "Libre Baskerville", serif;
+    font-weight: 200;
+    font-style: normal;
+    padding: 0.6em 1.2em;
+    color:slategrey;
+    text-align: right;
+}
+
+.form_label {
+    font-size: 0.6em;
+    margin-bottom: 0.5rem;
+    text-align: right;
+}
+
+.bottom_left_image{
+    position: absolute;
+    bottom: 0;
+    left:0;
+    z-index: 5;
+    height: 100vh;
+}
+
+.live_counter {
+    margin-top: 1rem;
+}
+
+.live_wrapper {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+
+.live_feed {
+    max-height: 15rem;
+    overflow: auto;
+    scrollbar-width: none;
+    max-width: 35vw;
+    text-align: center;
+    margin-bottom: 1rem;
+    margin-right: 4rem;
+}
+
+.live_feed::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 30px; /* Height of the fuzzy effect */
+    pointer-events: none;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
+    /* Adjust the colors based on the background color of the container */
+}
+
+.live_feed::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100px; /* Height of the fuzzy effect */
+    pointer-events: none;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 100%);
+    /* Adjust the colors based on the background color of the container */
+}
+
+.right_image {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    z-index: 5;
+    height: 100vh;
+}
+
+.upper_right_image {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 5;
+}
+
+.new_player, .new_voter {
+    font-size: 0.6em;
+    margin-bottom: 0.5rem;
+    font-style: italic;
+    font-weight: 100;
+}
+
+#vote_for_user_form {
+    display: flex;
+    flex-direction: row;  /* Stacks things horizontally */
+    justify-content: center; /* Cram things to the left */
+    flex-wrap: wrap; /* Enable wrapping */
+    gap: 10px; /* Optional: space between items */
+}
+
+#how_everyone_voted {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 20rem;
+    text-shadow: 2px 2px 4px white;
+    z-index: 10;
+}
+
+#the_answer{
+    font-size:2em;
+    text-align: center;
+    font-style: italic;
+}
+
+#voted_for_it{
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+    margin-right: 1rem;
+    text-align: right;
+}
+
+#answerer{
+    text-align: right;
+    margin-right: 1rem;
+}
+
+#ivan_lol, #ivan_squint {
+    height: 20rem;
+}
+
+#how_everyone_scored {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 20rem;
+}
+
+#this_round_scores, #overall_scores {
+    margin-bottom: 1rem;
+    font-weight: bold;
+}
+
+.leaderboard_entry {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 62vw;
+    max-width: 70vw;
+    margin-bottom: 0.8rem;
+    border-bottom: 1px solid black;
+    text-shadow: 2px 2px 4px white;
+    z-index: 15;
+}
+
+.leaderboard_username_score_group {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.leaderboard_username {
+    width: 80%;
+    text-align: left;
+}
+.leaderboard_score {
+    width: 20%;
+    text-align: right;
+}
+.leaderboard_answer {
+    text-align: left;
+    font-size: 1rem;
+    margin-left: 3rem;
+}
+
+#showing_score .current_question {
+    font-size: 2rem;
+}
+
+#game_control_button_wrapper {
+    display: flex;
+    flex-direction: row;  /* Stacks things horizontally */
+    justify-content: left; /* Cram things to the left */
+    position: fixed;
+    left: 5vw;
+    bottom: 0;
+    width: 100%;
+    z-index: 15;
+}
