@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin</title>
+    <title>Ivan Lyin' - Display</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/master.css', v='1.2')}}">
 </head>
 <body>
@@ -30,6 +30,10 @@
                 let playerVisibleElems = document.getElementsByClassName("player_visible");
                 for (elem of playerVisibleElems){
                     elem.classList.remove("hide_me")
+                    if (elem.id == "how_everyone_voted")
+                    {
+                        alert("Removing class");
+                    }
                 }
             }
             if (pagePath.includes("projector")){
@@ -38,7 +42,7 @@
                 for (elem of projectorVisibleElems){
                     elem.classList.remove("hide_me")
                 }
-            }        
+            }
         });
         
 
@@ -376,7 +380,7 @@
                 default:
                     break;
             }
-
+            return Promise.resolve();
         }
 
         async function advanceGameState(){
@@ -453,25 +457,6 @@
                 }),
             });
         }
-
-        function positionOverlap(button_id, img_id) {
-            const target = document.getElementById(button_id);
-            const overlap = document.getElementById(img_id);
-
-            const targetRect = target.getBoundingClientRect();
-            const offset = Math.floor(targetRect.width * 0.2);
-            overlap.style.left = `${targetRect.left - overlap.offsetWidth + offset}px`;
-            // overlap.style.top = `${targetRect.top}px`;
-        }
-
-        window.addEventListener('resize', ()=>{
-            positionOverlap("button_add_new_player", "ivan_penguins");
-            positionOverlap("button_add_new_answer_to_current_question", "ivan_suit");
-        });
-        window.addEventListener('load', ()=>{
-            positionOverlap("button_add_new_player", "ivan_penguins");
-            positionOverlap("button_add_new_answer_to_current_question", "ivan_suit");
-        });
         
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -490,20 +475,29 @@
                 });
             });
         });
+        async function runLoop(){
+            while (true){
+                await getGameDataAndRenderEverything();
+                await delay(500);
+            }
+        }
+        
+        runLoop();
 
-        setInterval(getGameDataAndRenderEverything, 500);
+        // setInterval(()=>{getGameDataAndRenderEverything}, 500);
     </script>
     
     <div id="debug"></div>
 
     <div id="welcome" class="phase_wrapper">
-        <div class="phase_banner">Welcome to Lyin' Ivan!</div>
-        <img src="{{ url_for('static', filename='images/IvanPenguins.png') }}" id="ivan_penguins" class="bottom_left_image" alt="Bottom Left Image">
-       
+        <div class="phase_banner">Welcome to Ivan Lyin'!</div>
+        <img src="{{ url_for('static', filename='images/IvanPenguins.png') }}" class="bottom_left_image hide_me widescreen_visible ">
+        
         <div id="new_player_form" class="player_visible ivan_visible buttoned_form hide_me">
+            <img src="{{ url_for('static', filename='images/BL_DozingIvan.png') }}" class="bottom_left_peek mobilescreen_visible hide_me">
             <label class="form_label">Your name</label>
-            <input type="text" id="intext_new_player_username" placeholder="" autofocus>
-            <button id="button_add_new_player" onclick="addNewPlayer()">Lock In™ </button>
+            <input type="text" id="intext_new_player_username" class="buttoned_intext" autofocus>
+            <button id="button_add_new_player" class="intexted_button" onclick="addNewPlayer()">Lock In™ </button>
         </div>
 
         <div id="live_counter_new_players" class="projector_visible admin_visible hide_me live_counter">
@@ -526,8 +520,11 @@
         </div>
     </div>
     <div id="question_pending" class="phase_wrapper">
-        <div class="phase_banner">Question being Locked In™...</div>
-        <img src="{{ url_for('static', filename='images/IvanIceCream.png') }}" id="ivan_icecream" class="right_image" alt="Bottom Left Image">
+        <div class="phase_banner projector_visible hide_me">Question is being Locked In™...</div>
+        <div class="hide_me player_visible ivan_visible status_message"><img src="{{ url_for('static', filename='images/LoadSpinner.png') }}"></div>
+        <img src="{{ url_for('static', filename='images/IvanIceCream.png') }}" class="right_image widescreen_visible hide_me">
+        <div class="centered_fullscreen_image L_BigDozingIvan mobilescreen_visible hide_me"></div>
+        <!-- <img src="{{ url_for('static', filename='images/L_BigDozingIvan.png') }}" class="centered_fullscreen_image mobilescreen_visible hide_me"> -->
         <div id="add_new_question_form" class="admin_visible hide_me buttoned_form">
             <input type="text" id="intext_new_question" placeholder="Enter new question">
             <button id="button_add_new_question" onclick="addNewQuestion()">Lock In™ </button>
@@ -538,10 +535,11 @@
         <div class="current_question admin_visible player_visible ivan_visible projector_visible hide_me phase_banner">
             What is Ivan's favorite candy when topped with chocolates?
         </div>
-        <img src="{{ url_for('static', filename='images/IvanSuit.png') }}" id="ivan_suit" class="bottom_left_image" alt="Bottom Left Image">
+        <img src="{{ url_for('static', filename='images/IvanSuit.png') }}" class="bottom_left_image widescreen_visible hide_me">
         <div id="add_new_answer_to_current_question_form" class="player_visible ivan_visible hide_me buttoned_form">
-            <input type="text" id="intext_new_answer" placeholder="Enter answer">
-            <button id="button_add_new_answer_to_current_question" onclick="addNewAnswerToCurrentQuestion()">Lock In™ </button>
+            <input type="text" id="intext_new_answer" class="buttoned_intext" placeholder="Enter answer">
+            <img src="{{ url_for('static', filename='images/BR_DozingIvan.png') }}" class="bottom_right_peek mobilescreen_visible hide_me">
+            <button id="button_add_new_answer_to_current_question" class="intexted_button" onclick="addNewAnswerToCurrentQuestion()">Lock In™ </button>
         </div>
         <div id="live_counter_new_answers" class="projector_visible admin_visible hide_me live_counter">
             3/4 are Locked In™ 
@@ -569,7 +567,8 @@
             3/4 are Locked In™ 
         </div>
         
-        <img src="{{ url_for('static', filename='images/IvanPeek.png') }}" id="ivan_peek" class="upper_right_image" alt="Bottom Left Image">
+        <img src="{{ url_for('static', filename='images/MOB_IvanFood.png') }}" class="right_image widescreen_visible hide_me">
+        <img src="{{ url_for('static', filename='images/IvanPeek.png') }}" class="upper_right_image mobilescreen_visible hide_me">
         <div id="vote_for_user_form" class="player_visible projector_visible hide_me">
             <button>Almost Heaven</button>
             <button>West Virginia Blue RidgeD Mountains Shannadoah River</button>
@@ -590,11 +589,13 @@
         
     </div>
     <div id="showing_answers"  class="phase_wrapper">
-        <div class="current_question admin_visible player_visible ivan_visible projector_visible hide_me phase_banner">
+        <div class="current_question admin_visible projector_visible hide_me phase_banner">
             What is Ivan's favorite candy when topped with chocolates?
         </div>
-        <div class="hide_me player_visible ivan_visible status_message">Showing results on the big screen!</div>
-        <img src="{{ url_for('static', filename='images/IvanLol.png') }}" id="ivan_lol" class="bottom_left_image">
+        <div class="hide_me player_visible ivan_visible status_message"><img src="{{ url_for('static', filename='images/LoadSpinner.png') }}"></div>
+        <img src="{{ url_for('static', filename='images/L_PosingIvan.png') }}" class="bottom_left_image widescreen_visible hide_me">
+        <!-- <img src="{{ url_for('static', filename='images/MOB_IvanLeggo.png') }}" class="centered_fullscreen_image mobilescreen_visible hide_me"> -->
+        <div class="centered_fullscreen_image MOB_IvanLeggo mobilescreen_visible hide_me"></div>
         <div id="how_everyone_voted" class="projector_visible admin_visible hide_me">
             <div id="the_answer">West Virginia Blue RidgeD Mountains Shannadoah River</div>
             <div id="voted_for_it"><b>Caleb, Charles, KingIvan</b> thought it was KingIvan's answer...</div>
@@ -602,11 +603,14 @@
         </div>
     </div>
     <div id="showing_score" class="phase_wrapper">
-        <div class="current_question admin_visible player_visible ivan_visible projector_visible hide_me phase_banner">
+        <div class="current_question admin_visible projector_visible hide_me phase_banner">
             What is Ivan's favorite candy when topped with chocolates?
         </div>
-        <div class="hide_me player_visible ivan_visible status_message">Showing results on the big screen!</div>
-        <img src="{{ url_for('static', filename='images/IvanSquint.png') }}" id="ivan_squint" class="right_image">
+        <div class="hide_me player_visible ivan_visible status_message"><img src="{{ url_for('static', filename='images/LoadSpinner.png') }}"></div>
+        <img src="{{ url_for('static', filename='images/MOB_IvanHats.png') }}" class="bottom_left_image widescreen_visible hide_me">
+        <!-- <img src="{{ url_for('static', filename='images/BR_DozingIvanSeatBelt.png') }}" class="centered_fullscreen_image mobilescreen_visible hide_me"> -->
+        <div class="centered_fullscreen_image BR_DozingIvanSeatBelt mobilescreen_visible hide_me"></div>
+        
         <div id="how_everyone_scored" class="projector_visible admin_visible hide_me">
             <div id="this_round_scores">
                 On this Question:

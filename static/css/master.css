@@ -5,23 +5,31 @@ body {
     font-family: "Libre Baskerville", serif;
     font-weight: 400;
     font-style: normal;
-    max-width: 100%;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
     overflow: hidden;
     /* background-color:rgb(255, 245, 236); */
 }
 
-.hide_me {
-    visibility: hidden;
+html {
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 .phase_wrapper {
-    display: none;
+    display: flex;
     flex-direction: column;  /* Stacks things vertically */
     justify-content: center; /* Center horizontally */
     align-items: center;     /* Center vertically */
     height: 100vh;
     width: 100%;
     text-shadow: 2px 2px 4px white;
+    overflow: hidden;
 }
 
 .phase_banner {
@@ -31,9 +39,16 @@ body {
     font-weight: bold;
     text-align: center;
 }
+@media only screen and (max-width:750px){
+    .phase_banner {
+        font-size: 1em;
+    }
+}
 
 .status_message {
     text-align: center;
+    position: absolute;
+    z-index: 10;
 }
 
 .buttoned_form {
@@ -50,7 +65,6 @@ button {
     font-style: normal;
     padding: 0.6em 1.2em;
     margin-top: 1rem;
-    /* font-weight: bold; */
     max-width: 20rem;
 }
 
@@ -86,10 +100,11 @@ input {
     position: absolute;
     bottom: 0;
     right: 0;
+    z-index: 10;
 }
 
 .live_feed {
-    max-height: 15rem;
+    max-height: 25rem;
     overflow: auto;
     scrollbar-width: none;
     max-width: 35vw;
@@ -137,7 +152,7 @@ input {
 }
 
 .new_player, .new_voter {
-    font-size: 0.6em;
+    font-size: 1em;
     margin-bottom: 0.5rem;
     font-style: italic;
     font-weight: 100;
@@ -149,8 +164,35 @@ input {
     justify-content: center; /* Cram things to the left */
     flex-wrap: wrap; /* Enable wrapping */
     gap: 10px; /* Optional: space between items */
+    overflow-y: scroll;
 }
 
+@media only screen and (max-width:749px){
+    #vote_for_user_form::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        width: 100%;
+        height: 30px; /* Height of the fuzzy effect */
+        pointer-events: none;
+        background: linear-gradient(to bottom, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
+        z-index: 15;
+        /* Adjust the colors based on the background color of the container */
+    }
+
+    #vote_for_user_form::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 100px; /* Height of the fuzzy effect */
+        pointer-events: none;
+        background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 100%);
+        z-index: 15;
+        /* Adjust the colors based on the background color of the container */
+    }
+}
 #how_everyone_voted {
     display: flex;
     flex-direction: column;
@@ -158,6 +200,10 @@ input {
     min-height: 20rem;
     text-shadow: 2px 2px 4px white;
     z-index: 10;
+}
+
+#how_everyone_voted.hide_me {
+    display: none;
 }
 
 #the_answer{
@@ -178,15 +224,15 @@ input {
     margin-right: 1rem;
 }
 
-#ivan_lol, #ivan_squint {
-    height: 20rem;
-}
-
 #how_everyone_scored {
     display: flex;
     flex-direction: column;
     justify-content: center;
     min-height: 20rem;
+}
+
+#how_everyone_scored.hide_me {
+    display: none;
 }
 
 #this_round_scores, #overall_scores {
@@ -198,8 +244,8 @@ input {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    min-width: 62vw;
-    max-width: 70vw;
+    min-width: 50vw;
+    max-width: 55vw;
     margin-bottom: 0.8rem;
     border-bottom: 1px solid black;
     text-shadow: 2px 2px 4px white;
@@ -226,7 +272,7 @@ input {
     margin-left: 3rem;
 }
 
-#showing_score .current_question {
+#showing_score.current_question {
     font-size: 2rem;
 }
 
@@ -239,4 +285,98 @@ input {
     bottom: 0;
     width: 100%;
     z-index: 15;
+}
+
+#game_control_button_wrapper.hide_me {
+    display: none;
+}
+
+
+@media only screen and (min-width:750px){
+    .hide_me.widescreen_visible {
+        display:block;
+    }
+}
+
+@media only screen and (max-width:749px){
+    .hide_me.mobilescreen_visible {
+        display:block;
+    }
+}
+
+.bottom_left_peek {
+    position: absolute;
+    left: 0%;
+    width: 40vw;
+    z-index: 5;
+}
+.bottom_right_peek {
+    position: absolute;
+    width: 20vw;
+    margin-bottom: 3rem;
+    right:0;
+    z-index: 5;
+}
+
+.buttoned_intext {
+    z-index: 1;
+}
+
+.intexted_button {
+    z-index: 10;
+}
+
+.centered_fullscreen_image {
+    position: absolute;
+    
+    top:0;  
+    bottom: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 5;
+    overflow: hidden;
+    background-position: bottom left;
+    background-size: cover;
+    background-attachment: fixed;
+}
+
+.L_BigDozingIvan {
+    background: url("/static/images/L_BigDozingIvan.png");
+    background-position: bottom left;
+    background-size: cover;
+    background-attachment: fixed;
+}
+
+.BR_DozingIvanSeatBelt {
+    background: url("/static/images/BR_DozingIvanSeatBelt.png");
+    background-position: bottom left;
+    background-size: cover;
+    background-attachment: fixed;
+}
+
+
+.MOB_IvanLeggo {
+    background: url("/static/images/MOB_IvanLeggo.png");
+    background-position: bottom left;
+    background-size: cover;
+    background-attachment: fixed;
+}
+
+
+#vote_for_user_form button{
+    z-index:10;
+}
+
+#vote_for_user_form.hide_me {
+    display: none;
+}
+
+.hide_me {
+    display: none;
+}
+
+img {
+    overflow-clip-margin: 0px;
+    overflow: hidden;
 }
